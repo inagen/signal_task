@@ -44,6 +44,10 @@ public:
     ~signal() {
         for (iteration_token* t = top_token; t != nullptr; t = t->next)
             t->sig = nullptr;
+        
+        while (!connections.empty()) {
+            connections.begin()->clean();
+        }
     }
 
     struct iteration_token {
@@ -108,13 +112,17 @@ public:
                         --t->iterator;
                     }
                 }
-                this->unlink();
-                slot = slot_t();
-                sig = nullptr;
+                clean();
             }
         }
 
     private:
+        void clean() noexcept {
+            this->unlink();
+            slot = slot_t();
+            sig = nullptr;
+        }
+
         void move_ctor(connection& other) {
             if (sig != nullptr) {
                 sig->connections.insert(sig->connections.as_iterator(other), *this);
