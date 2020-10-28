@@ -20,7 +20,7 @@ struct signal<void (Args...)>
 
 private:
     connections_t connections;
-    mutable iteration_token* top_token{};
+    mutable iteration_token* top_token = nullptr;
 
 public:
     signal() = default;
@@ -44,16 +44,13 @@ public:
     ~signal() {
         for (iteration_token* t = top_token; t != nullptr; t = t->next)
             t->sig = nullptr;
-        
-        while (!connections.empty())
-            connections.begin()->disconnect();
     }
 
     struct iteration_token {
     private:
         typename connections_t::const_iterator iterator;
-        signal const *sig{};
-        iteration_token *next{};    
+        signal const *sig = nullptr;
+        iteration_token *next = nullptr;    
         friend struct signal;
     
     public:
@@ -73,7 +70,7 @@ public:
 
     struct connection : intrusive::list_element<connection_tag> {
     private:
-        signal *sig{};
+        signal *sig = nullptr;
         slot_t slot;
         friend struct signal;
     
@@ -104,15 +101,15 @@ public:
             disconnect();
         }
 
-        void disconnect() {
+        void disconnect() noexcept {
             if (sig != nullptr) {
-                for (iteration_token* t = sig->top_token; t != nullptr; t = t->next) {
-                    if (&*t->iterator == this) {
-                        ++t->iterator;
+                for (iteration_token *tok = sig->top_token; tok != nullptr; tok = tok->next) {
+                    if (&*tok->iterator == this) {
+                        --tok->iterator;
                     }
                 }
                 this->unlink();
-                slot = {};
+                slot = slot_t();
                 sig = nullptr;
             }
         }
