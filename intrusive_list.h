@@ -29,6 +29,10 @@ namespace intrusive {
             next = nullptr;
         }
 
+        bool linked() const noexcept {
+            return (next != nullptr || prev != nullptr);
+        }
+
         ~list_element() {
             unlink();
         }

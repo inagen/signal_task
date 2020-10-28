@@ -102,10 +102,10 @@ public:
         }
 
         void disconnect() noexcept {
-            if (sig != nullptr) {
-                for (iteration_token *tok = sig->top_token; tok != nullptr; tok = tok->next) {
-                    if (&*tok->iterator == this) {
-                        --tok->iterator;
+            if (sig != nullptr && this->linked()) {
+                for (iteration_token *t = sig->top_token; t != nullptr; t = t->next) {
+                    if (&*t->iterator == this) {
+                        --t->iterator;
                     }
                 }
                 this->unlink();
